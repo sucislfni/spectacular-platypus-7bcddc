@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semua Data - Pixel Love & Matcha Wedding Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        matcha: { 100: '#EBF3E8', 300: '#B8D4A2', 500: '#93B874', 700: '#7A9A60', 900: '#3A4D28' },
+                        pink: { 100: '#FFF0F5', 200: '#F3C5D8', 400: '#E8A0BF', 600: '#C9688F' },
+                        cream: '#FCFBF7',
+                        pixeldark: '#1E251B',
+                    },
+                    fontFamily: { pixel: ['"Press Start 2P"', 'cursive'], sans: ['Nunito', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #FCFBF7; color: #1E251B; font-family: 'Nunito', sans-serif;
+            background-image: radial-gradient(#93B874 0.75px, transparent 0.75px), radial-gradient(#E8A0BF 0.75px, #FCFBF7 0.75px);
+            background-size: 30px 30px; background-position: 0 0, 15px 15px;
+        }
+        .pixel-box { background: #FFFFFF; border: 4px solid #1E251B; box-shadow: 6px 6px 0px #3A4D28; }
+        .pixel-btn { border: 3px solid #1E251B; box-shadow: 4px 4px 0px #1E251B; transition: all 0.1s ease; font-weight: 700; }
+        .pixel-btn:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px #1E251B; }
+        .pixel-btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px #1E251B; }
+        .pixel-input { border: 2px solid #1E251B; outline: none; background: #fff; }
+        .pixel-input:focus { border-color: #7A9A60; box-shadow: 2px 2px 0px #7A9A60; }
+        .tab-btn.active { background-color: #93B874 !important; color: #fff !important; box-shadow: inset 3px 3px 0px #3A4D28; }
+        th { position: sticky; top: 0; }
+        #toast { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
+    </style>
+</head>
+<body class="min-h-screen pb-16">
+    <header class="bg-matcha-100 border-b-4 border-pixeldark">
+        <div class="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <div class="inline-flex items-center gap-2 bg-pink-200 border-2 border-pixeldark px-3 py-1 mb-2 text-[10px] font-pixel text-pink-600">
+                    <i class="fa-solid fa-database"></i> DATA CENTER
+                </div>
+                <h1 class="font-pixel text-base md:text-xl text-matcha-900 leading-relaxed">Semua Data Wedding Planner</h1>
+                <p class="text-sm font-semibold text-gray-600 mt-1">Semua data yang tersimpan di server. Siapa pun yang memiliki link bisa melihat, mengedit, dan menghapus data di sini.</p>
+            </div>
+            <div class="flex flex-wrap gap-2 items-center">
+                <div id="sync-status" class="pixel-btn px-3 py-2 text-[11px] bg-yellow-100 text-yellow-800"><i class="fa-solid fa-arrows-rotate fa-spin"></i> Memuat...</div>
+                <button onclick="loadData(true)" class="pixel-btn bg-white px-3 py-2 text-xs"><i class="fa-solid fa-rotate"></i> Muat Ulang</button>
+                <a href="/" class="pixel-btn bg-pink-200 text-pink-600 px-3 py-2 text-xs"><i class="fa-solid fa-arrow-left"></i> Kembali ke Planner</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 mt-6">
+        <div id="summary" class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6"></div>
+
+        <div class="flex flex-col md:flex-row gap-3 md:items-center justify-between mb-4">
+            <div id="tabs" class="flex flex-wrap gap-2"></div>
+            <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                <input id="search" type="search" placeholder="Cari data..." class="pixel-input pl-8 pr-3 py-2 text-sm w-full md:w-64" oninput="render()">
+            </div>
+        </div>
+
+        <div class="pixel-box p-0 overflow-hidden">
+            <div class="flex items-center justify-between px-4 py-3 border-b-4 border-pixeldark bg-pink-100">
+                <h2 id="table-title" class="font-pixel text-[11px] text-matcha-900"></h2>
+                <button id="add-btn" onclick="addRow()" class="pixel-btn bg-matcha-500 text-white px-3 py-1.5 text-xs"><i class="fa-solid fa-plus"></i> Tambah Data</button>
+            </div>
+            <div class="overflow-auto max-h-[70vh]">
+                <table class="w-full text-xs">
+                    <thead id="thead" class="bg-matcha-100 font-bold text-matcha-900"></thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+            </div>
+        </div>
+        <p class="text-[11px] text-gray-500 font-semibold mt-3"><i class="fa-solid fa-circle-info"></i> Perubahan disimpan otomatis saat kolom selesai diedit, dan langsung terlihat di semua perangkat. Halaman ini memperbarui data setiap 5 detik.</p>
+    </main>
+
+    <div id="toast" class="hidden pixel-box px-4 py-3 font-pixel text-[10px] text-matcha-900"></div>
+
+    <script src="/js/planner-sync.js"></script>
+    <script>
+        const SESERAHAN_STATUS = ['Belum Dibeli', 'Sudah Dibeli', 'Boks/Hias Ready'];
+        const RSVP = ['Belum Konfirmasi', 'Hadir', 'Tidak Hadir'];
+        const VENDOR_STATUS = ['Dipertimbangkan', 'DEAL'];
+
+        // Definisi kolom tiap jenis data
+        const TABLES = {
+            vendors: {
+                label: 'Vendor', icon: 'fa-store',
+                columns: [
+                    { key: 'categoryName', label: 'Kategori', readonly: true },
+                    { key: 'name', label: 'Nama Vendor' },
+                    { key: 'price', label: 'Harga (Rp)', type: 'number' },
+                    { key: 'packageItems', label: 'Paket' },
+                    { key: 'status', label: 'Status', options: VENDOR_STATUS }
+                ]
+            },
+            seserahan: {
+                label: 'Seserahan', icon: 'fa-gift',
+                columns: [
+                    { key: 'category', label: 'Kategori' },
+                    { key: 'name', label: 'Nama Barang' },
+                    { key: 'brandName', label: 'Brand' },
+                    { key: 'platform', label: 'Platform', options: ['Shopee', 'TikTok', 'Offline'] },
+                    { key: 'estCost', label: 'Estimasi (Rp)', type: 'number' },
+                    { key: 'actCost', label: 'Aktual (Rp)', type: 'number' },
+                    { key: 'status', label: 'Status', options: SESERAHAN_STATUS },
+                    { key: 'notes', label: 'Catatan' }
+                ]
+            },
+            checklist: {
+                label: 'Checklist', icon: 'fa-list-check',
+                columns: [
+                    { key: 'phase', label: 'Fase', options: ['H-12 s/d H-9 Bulan', 'H-8 s/d H-6 Bulan', 'H-5 s/d H-3 Bulan', 'H-2 s/d H-1 Bulan', 'Minggu H & Hari H', '+1 Hari Setelah Acara'] },
+                    { key: 'title', label: 'Tugas' },
+                    { key: 'completed', label: 'Selesai', type: 'checkbox' }
+                ]
+            },
+            guests: {
+                label: 'Tamu', icon: 'fa-users',
+                columns: [
+                    { key: 'name', label: 'Nama' },
+                    { key: 'category', label: 'Kategori' },
+                    { key: 'pax', label: 'Pax', type: 'number' },
+                    { key: 'rsvp', label: 'RSVP', options: RSVP },
+                    { key: 'table', label: 'Meja' },
+                    { key: 'gift', label: 'Hadiah' }
+                ]
+            },
+            settings: {
+                label: 'Pengaturan', icon: 'fa-gear',
+                columns: [
+                    { key: 'label', label: 'Pengaturan', readonly: true },
+                    { key: 'value', label: 'Nilai' }
+                ]
+            }
+        };
+        const SETTING_LABELS = { groomName: 'Nama Mempelai Pria', brideName: 'Nama Mempelai Wanita', weddingDate: 'Tanggal Pernikahan', maxBudget: 'Total Budget (Rp)' };
+
+        let records = [];
+        let current = 'vendors';
+        let busy = false;
+        let lastSignature = '';
+
+        const esc = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        const rupiah = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n || 0);
+
+        function toast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.remove('hidden');
+            clearTimeout(t._h);
+            t._h = setTimeout(() => t.classList.add('hidden'), 2500);
+        }
+
+        function status(mode, text) {
+            const el = document.getElementById('sync-status');
+            const cls = { ok: 'bg-matcha-100 text-matcha-900', busy: 'bg-yellow-100 text-yellow-800', error: 'bg-red-100 text-red-700' }[mode];
+            const icon = { ok: 'fa-cloud', busy: 'fa-arrows-rotate fa-spin', error: 'fa-triangle-exclamation' }[mode];
+            el.className = `pixel-btn px-3 py-2 text-[11px] ${cls}`;
+            el.innerHTML = `<i class="fa-solid ${icon}"></i> ${text}`;
+        }
+
+        // Ubah record database menjadi baris tabel
+        function rowsFor(collection) {
+            const list = records.filter(r => r.collection === collection).sort((a, b) => a.position - b.position);
+            if (collection === 'vendors') {
+                const rows = [];
+                list.forEach(r => (r.data.options || []).forEach(o => rows.push({
+                    _rec: r, _optId: o.id, categoryName: r.data.name || r.itemId, ...o,
+                    status: (o.status === 'DEAL' || o.isDeal) ? 'DEAL' : 'Dipertimbangkan'
+                })));
+                return rows;
+            }
+            if (collection === 'settings') {
+                return list.map(r => ({ _rec: r, label: SETTING_LABELS[r.itemId] || r.itemId, value: r.data?.value }));
+            }
+            return list.map(r => ({ _rec: r, ...r.data }));
+        }
+
+        function renderSummary() {
+            const count = (c) => rowsFor(c).length;
+            const guestsPax = rowsFor('guests').reduce((s, g) => s + (parseInt(g.pax) || 0), 0);
+            const deal = rowsFor('vendors').filter(v => v.status === 'DEAL').reduce((s, v) => s + (parseFloat(v.price) || 0), 0);
+            const done = rowsFor('checklist').filter(c => c.completed).length;
+            const cards = [
+                ['Vendor', count('vendors'), `Deal: ${rupiah(deal)}`, 'fa-store'],
+                ['Seserahan', count('seserahan'), 'item barang', 'fa-gift'],
+                ['Checklist', count('checklist'), `${done} selesai`, 'fa-list-check'],
+                ['Tamu', count('guests'), `${guestsPax} pax`, 'fa-users'],
+                ['Total Record', records.length, 'baris di database', 'fa-database']
+            ];
+            document.getElementById('summary').innerHTML = cards.map(([t, n, sub, icon]) => `
+                <div class="pixel-box p-3">
+                    <div class="text-[10px] font-pixel text-pink-600 mb-2"><i class="fa-solid ${icon}"></i> ${t}</div>
+                    <div class="text-2xl font-black text-matcha-900">${n}</div>
+                    <div class="text-[11px] font-semibold text-gray-500">${sub}</div>
+                </div>`).join('');
+        }
+
+        function renderTabs() {
+            document.getElementById('tabs').innerHTML = Object.entries(TABLES).map(([key, t]) => `
+                <button onclick="switchTable('${key}')" class="tab-btn pixel-btn ${key === current ? 'active' : ''} bg-white px-3 py-1.5 text-xs">
+                    <i class="fa-solid ${t.icon}"></i> ${t.label} <span class="opacity-70">(${rowsFor(key).length})</span>
+                </button>`).join('');
+        }
+
+        function cellInput(col, row, idx) {
+            const v = row[col.key];
+            if (col.readonly) return `<span class="font-bold">${esc(v)}</span>`;
+            const handler = `onchange="editCell(${idx}, '${col.key}', this)"`;
+            if (col.type === 'checkbox') return `<input type="checkbox" ${v ? 'checked' : ''} ${handler} class="w-4 h-4 accent-green-600">`;
+            if (col.options) {
+                const opts = col.options.includes(v) || v === undefined ? col.options : [v, ...col.options];
+                return `<select ${handler} class="pixel-input p-1 text-xs w-full">${opts.map(o => `<option ${o === v ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+            }
+            let type = col.type === 'number' ? 'number' : 'text';
+            if (current === 'settings' && row._rec.itemId === 'weddingDate') type = 'date';
+            if (current === 'settings' && row._rec.itemId === 'maxBudget') type = 'number';
+            return `<input type="${type}" value="${esc(v)}" ${handler} class="pixel-input p-1 text-xs w-full min-w-[90px]">`;
+        }
+
+        let visibleRows = [];
+        function render() {
+            renderSummary();
+            renderTabs();
+            const t = TABLES[current];
+            const q = document.getElementById('search').value.trim().toLowerCase();
+            const all = rowsFor(current);
+            visibleRows = q ? all.filter(r => t.columns.some(c => String(r[c.key] ?? '').toLowerCase().includes(q))) : all;
+
+            document.getElementById('table-title').innerHTML = `<i class="fa-solid ${t.icon}"></i> DATA ${t.label.toUpperCase()} (${visibleRows.length}/${all.length})`;
+            document.getElementById('add-btn').classList.toggle('hidden', current === 'settings');
+            document.getElementById('thead').innerHTML = `<tr>
+                <th class="bg-matcha-100 border-b-2 border-pixeldark p-2 text-left w-8">#</th>
+                ${t.columns.map(c => `<th class="bg-matcha-100 border-b-2 border-pixeldark p-2 text-left whitespace-nowrap">${c.label}</th>`).join('')}
+                <th class="bg-matcha-100 border-b-2 border-pixeldark p-2 text-left whitespace-nowrap">Terakhir Diubah</th>
+                <th class="bg-matcha-100 border-b-2 border-pixeldark p-2 text-center">Aksi</th>
+            </tr>`;
+            const tbody = document.getElementById('tbody');
+            if (!visibleRows.length) {
+                tbody.innerHTML = `<tr><td colspan="${t.columns.length + 3}" class="p-8 text-center font-bold text-gray-500">Belum ada data.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = visibleRows.map((row, idx) => `
+                <tr class="border-b border-gray-200 hover:bg-pink-100/50">
+                    <td class="p-2 font-bold text-gray-400">${idx + 1}</td>
+                    ${t.columns.map(c => `<td class="p-2 align-middle">${cellInput(c, row, idx)}</td>`).join('')}
+                    <td class="p-2 whitespace-nowrap text-gray-500">${row._rec.updatedAt ? new Date(row._rec.updatedAt).toLocaleString('id-ID') : '-'}</td>
+                    <td class="p-2 text-center">${current === 'settings' ? '' : `<button onclick="deleteRow(${idx})" class="pixel-btn bg-red-100 text-red-600 px-2 py-1 text-xs" title="Hapus"><i class="fa-solid fa-trash"></i></button>`}</td>
+                </tr>`).join('');
+        }
+
+        function switchTable(key) {
+            current = key;
+            document.getElementById('search').value = '';
+            render();
+        }
+
+        async function loadData(force) {
+            if (busy) return;
+            const a = document.activeElement;
+            if (!force && a && ['INPUT', 'SELECT', 'TEXTAREA'].includes(a.tagName) && a.id !== 'search') return;
+            try {
+                const fresh = await PlannerSync.fetchAll();
+                const sig = JSON.stringify(fresh);
+                if (sig !== lastSignature || force) {
+                    lastSignature = sig;
+                    records = fresh;
+                    render();
+                }
+                status('ok', 'Tersinkron');
+            } catch (e) {
+                status('error', 'Gagal memuat data');
+            }
+        }
+
+        // Ambil versi terbaru satu record dari server, ubah, lalu simpan.
+        async function mutate(collection, itemId, fn, successMsg) {
+            busy = true;
+            status('busy', 'Menyimpan...');
+            try {
+                const fresh = await PlannerSync.fetchAll();
+                const rec = fresh.find(r => r.collection === collection && r.itemId === itemId);
+                const result = fn(rec ? JSON.parse(JSON.stringify(rec)) : null, fresh);
+                if (result) await PlannerSync.push(result.upserts || [], result.deletes || []);
+                toast(successMsg);
+            } catch (e) {
+                status('error', 'Gagal menyimpan');
+                alert('Gagal menyimpan: ' + e.message);
+            } finally {
+                busy = false;
+                await loadData(true);
+            }
+        }
+
+        function parseVal(col, el) {
+            if (col.type === 'checkbox') return el.checked;
+            if (col.type === 'number' || el.type === 'number') return parseFloat(el.value || 0);
+            return el.value;
+        }
+
+        function editCell(idx, key, el) {
+            const row = visibleRows[idx];
+            const col = TABLES[current].columns.find(c => c.key === key);
+            const value = parseVal(col, el);
+            const { collection, itemId } = row._rec;
+
+            if (collection === 'settings') {
+                return mutate(collection, itemId, (rec) => ({ upserts: [{ collection, itemId, data: { value }, position: rec ? rec.position : 0 }] }), 'Pengaturan diperbarui!');
+            }
+            if (collection === 'vendors') {
+                return mutate(collection, itemId, (rec) => {
+                    if (!rec) return null;
+                    const opts = rec.data.options || [];
+                    if (key === 'status') {
+                        if (value === 'DEAL') opts.forEach(o => { o.isDeal = o.id === row._optId; o.status = o.id === row._optId ? 'DEAL' : 'Dipertimbangkan'; });
+                        else { const o = opts.find(o => o.id === row._optId); if (o) { o.isDeal = false; o.status = 'Dipertimbangkan'; } }
+                    } else {
+                        const o = opts.find(o => o.id === row._optId);
+                        if (!o) return null;
+                        o[key] = value;
+                    }
+                    return { upserts: [{ collection, itemId, data: rec.data, position: rec.position }] };
+                }, 'Vendor diperbarui!');
+            }
+            return mutate(collection, itemId, (rec) => {
+                if (!rec) return null;
+                rec.data[key] = value;
+                return { upserts: [{ collection, itemId, data: rec.data, position: rec.position }] };
+            }, 'Data diperbarui!');
+        }
+
+        function deleteRow(idx) {
+            const row = visibleRows[idx];
+            const { collection, itemId } = row._rec;
+            const name = row.name || row.title || itemId;
+            if (!confirm(`Hapus "${name}"? Data akan terhapus untuk semua orang.`)) return;
+
+            if (collection === 'vendors') {
+                return mutate(collection, itemId, (rec) => {
+                    if (!rec) return null;
+                    rec.data.options = (rec.data.options || []).filter(o => o.id !== row._optId);
+                    return { upserts: [{ collection, itemId, data: rec.data, position: rec.position }] };
+                }, 'Vendor dihapus.');
+            }
+            return mutate(collection, itemId, () => ({ deletes: [{ collection, itemId }] }), 'Data dihapus.');
+        }
+
+        function addRow() {
+            const collection = current;
+            const now = Date.now();
+            if (collection === 'vendors') {
+                const cats = records.filter(r => r.collection === 'vendors').sort((a, b) => a.position - b.position);
+                if (!cats.length) return alert('Belum ada kategori vendor.');
+                const list = cats.map((c, i) => `${i + 1}. ${c.data.name || c.itemId}`).join('\n');
+                const pick = parseInt(prompt('Pilih nomor kategori vendor:\n' + list, '1'));
+                const cat = cats[pick - 1];
+                if (!cat) return;
+                return mutate('vendors', cat.itemId, (rec) => {
+                    if (!rec) return null;
+                    rec.data.options = rec.data.options || [];
+                    rec.data.options.push({ id: 'v-custom-' + now, name: 'Vendor Baru', price: 0, rating: 5, packageItems: '', status: 'Dipertimbangkan' });
+                    return { upserts: [{ collection: 'vendors', itemId: rec.itemId, data: rec.data, position: rec.position }] };
+                }, 'Vendor ditambahkan! Silakan edit datanya.');
+            }
+            const templates = {
+                seserahan: { id: 's-item-' + now, category: 'Pakaian & Busana', name: 'Barang Baru', brandName: '', platform: 'Offline', estCost: 0, actCost: 0, status: 'Belum Dibeli', notes: '' },
+                checklist: { id: 'chk-' + now, phase: 'H-12 s/d H-9 Bulan', title: 'Tugas Baru', completed: false },
+                guests: { id: 'g-' + now, name: 'Tamu Baru', category: 'Keluarga', pax: 1, rsvp: 'Belum Konfirmasi', table: '-', gift: '-' }
+            };
+            const item = templates[collection];
+            mutate(collection, item.id, (_rec, fresh) => {
+                const maxPos = fresh.filter(r => r.collection === collection).reduce((m, r) => Math.max(m, r.position), -1);
+                return { upserts: [{ collection, itemId: item.id, data: item, position: maxPos + 1 }] };
+            }, 'Data ditambahkan! Silakan edit datanya.');
+        }
+
+        loadData(true);
+        setInterval(() => loadData(false), 5000);
+        window.addEventListener('focus', () => loadData(false));
+    </script>
+</body>
+</html>

@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Love & Matcha - Retro 3D Wedding Planner</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Three.js for 3D Pixel Elements -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Chart.js for Budget Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        matcha: {
+                            100: '#EBF3E8',
+                            300: '#B8D4A2',
+                            500: '#93B874',
+                            700: '#7A9A60',
+                            900: '#3A4D28',
+                        },
+                        pink: {
+                            100: '#FFF0F5',
+                            200: '#F3C5D8',
+                            400: '#E8A0BF',
+                            600: '#C9688F',
+                        },
+                        cream: '#FCFBF7',
+                        pixeldark: '#1E251B',
+                    },
+                    fontFamily: {
+                        pixel: ['"Press Start 2P"', 'cursive'],
+                        sans: ['Nunito', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #FCFBF7;
+            color: #1E251B;
+            font-family: 'Nunito', sans-serif;
+            background-image: radial-gradient(#93B874 0.75px, transparent 0.75px), radial-gradient(#E8A0BF 0.75px, #FCFBF7 0.75px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+        }
+
+        .pixel-box {
+            background: #FFFFFF;
+            border: 4px solid #1E251B;
+            box-shadow: 6px 6px 0px #3A4D28;
+            image-rendering: pixelated;
+        }
+
+        .pixel-box-pink {
+            background: #FFF0F5;
+            border: 4px solid #1E251B;
+            box-shadow: 6px 6px 0px #C9688F;
+        }
+
+        .pixel-box-matcha {
+            background: #EBF3E8;
+            border: 4px solid #1E251B;
+            box-shadow: 6px 6px 0px #7A9A60;
+        }
+
+        .pixel-btn {
+            border: 3px solid #1E251B;
+            box-shadow: 4px 4px 0px #1E251B;
+            transition: all 0.1s ease;
+            font-weight: 700;
+        }
+
+        .pixel-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px #1E251B;
+        }
+
+        .pixel-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px #1E251B;
+        }
+
+        .pixel-input {
+            border: 3px solid #1E251B;
+            box-shadow: 3px 3px 0px rgba(0,0,0,0.1);
+            outline: none;
+        }
+
+        .pixel-input:focus {
+            border-color: #7A9A60;
+            box-shadow: 3px 3px 0px #7A9A60;
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #EBF3E8;
+            border: 2px solid #1E251B;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #93B874;
+            border: 2px solid #1E251B;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #7A9A60;
+        }
+
+        @keyframes floatPixel {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0px); }
+        }
+        .pixel-float {
+            animation: floatPixel 3s infinite ease-in-out;
+        }
+
+        .tab-btn.active {
+            background-color: #93B874 !important;
+            color: #FFFFFF !important;
+            box-shadow: inset 3px 3px 0px #3A4D28;
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-pixeldark pb-16">
+
+    <header class="relative bg-matcha-100 border-b-4 border-pixeldark overflow-hidden">
+        <div id="three-canvas-container" class="absolute inset-0 z-0 opacity-80 pointer-events-none"></div>
+
+        <div class="relative z-10 max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                
+                <div class="text-center md:text-left">
+                    <div class="inline-flex items-center gap-2 bg-pink-200 border-2 border-pixeldark px-3 py-1 rounded mb-2 text-xs font-pixel text-pink-600">
+                        <i class="fa-solid font-bold fa-heart animate-pulse"></i> RETRO 3D MATCHA & PINK WEDDING PLANNER
+                    </div>
+                    <div class="flex items-center justify-center md:justify-start gap-2">
+                        <input type="text" id="groom-name" class="pixel-input text-xl md:text-2xl font-pixel font-bold bg-white text-matcha-900 px-2 py-1 text-center md:text-left w-36 md:w-48" value="Dandi">
+                        <span class="font-pixel text-pink-600 text-xl md:text-2xl">&</span>
+                        <input type="text" id="bride-name" class="pixel-input text-xl md:text-2xl font-pixel font-bold bg-white text-pink-600 px-2 py-1 text-center md:text-left w-36 md:w-48" value="Nadirra">
+                    </div>
+                </div>
+
+                <div class="pixel-box-pink p-3 text-center min-w-[280px]">
+                    <div class="text-xs font-pixel text-pink-600 mb-1 flex items-center justify-center gap-2">
+                        <i class="fa-regular fa-clock"></i> COUNTDOWN HARI H
+                    </div>
+                    <div class="flex items-center justify-center gap-2 text-matcha-900 font-pixel text-sm md:text-base" id="countdown-timer">
+                        <div class="bg-white border-2 border-pixeldark px-2 py-1"><span id="cd-days">00</span><span class="text-[9px] block text-gray-500">HARI</span></div> :
+                        <div class="bg-white border-2 border-pixeldark px-2 py-1"><span id="cd-hours">00</span><span class="text-[9px] block text-gray-500">JAM</span></div> :
+                        <div class="bg-white border-2 border-pixeldark px-2 py-1"><span id="cd-mins">00</span><span class="text-[9px] block text-gray-500">MENIT</span></div> :
+                        <div class="bg-white border-2 border-pixeldark px-2 py-1"><span id="cd-secs">00</span><span class="text-[9px] block text-gray-500">DETIK</span></div>
+                    </div>
+                    <div class="mt-2 flex items-center justify-center gap-2 text-xs font-semibold">
+                        <span>Tanggal:</span>
+                        <input type="date" id="wedding-date" class="pixel-input text-xs px-2 py-0.5 bg-white" value="2027-12-19">
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mt-6 pixel-box p-3 bg-white">
+                <div class="flex justify-between items-center text-xs font-bold mb-1">
+                    <span class="font-pixel text-matcha-900"><i class="fa-solid fa-bars-progress text-matcha-700"></i> PROGRES PERENCANAAN PERNIKAHAN</span>
+                    <span id="overall-progress-percent" class="font-pixel text-pink-600">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 border-2 border-pixeldark h-5 rounded-none overflow-hidden relative">
+                    <div id="overall-progress-bar" class="bg-gradient-to-r from-matcha-500 to-pink-400 h-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between items-center text-[11px] text-gray-600 mt-2 font-semibold">
+                    <span id="completed-tasks-summary">Checklist Selesai: 0/0</span>
+                    <span id="budget-spent-summary">Total Anggaran Terpakai: Rp 0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-6">
+        <div class="flex flex-wrap gap-2 justify-center md:justify-start">
+            <button onclick="switchTab('vendors')" id="tab-vendors" class="tab-btn active pixel-btn bg-matcha-100 text-matcha-900 px-4 py-2 text-xs md:text-sm font-bold flex items-center gap-2">
+                <i class="fa-solid fa-store"></i> 16 Kategori Vendor
+            </button>
+            <button onclick="switchTab('seserahan')" id="tab-seserahan" class="tab-btn pixel-btn bg-pink-100 text-pink-600 px-4 py-2 text-xs md:text-sm font-bold flex items-center gap-2">
+                <i class="fa-solid fa-gift"></i> Seserahan & Hantaran
+            </button>
+            <button onclick="switchTab('budget')" id="tab-budget" class="tab-btn pixel-btn bg-matcha-100 text-matcha-900 px-4 py-2 text-xs md:text-sm font-bold flex items-center gap-2">
+                <i class="fa-solid fa-calculator"></i> Budget & Pengeluaran
+            </button>
+            <button onclick="switchTab('checklist')" id="tab-checklist" class="tab-btn pixel-btn bg-pink-100 text-pink-600 px-4 py-2 text-xs md:text-sm font-bold flex items-center gap-2">
+                <i class="fa-solid fa-list-check"></i> Checklist & Timeline
+            </button>
+            <button onclick="switchTab('guests')" id="tab-guests" class="tab-btn pixel-btn bg-matcha-100 text-matcha-900 px-4 py-2 text-xs md:text-sm font-bold flex items-center gap-2">
+                <i class="fa-solid fa-users"></i> Tamu & RSVP
+            </button>
+            <a href="/data.html" target="_blank" rel="noopener" class="pixel-btn bg-white text-pixeldark px-4 py-2 text-xs md:text-sm font-bold flex items-center gap-2">
+                <i class="fa-solid fa-database"></i> Semua Data
+            </a>
+            <div id="sync-status" class="pixel-btn px-3 py-2 text-[11px] flex items-center gap-2 bg-yellow-100 text-yellow-800 md:ml-auto">
+                <i class="fa-solid fa-arrows-rotate fa-spin"></i> <span>Memuat data...</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- VENDORS SECTION -->
+        <section id="section-vendors" class="tab-section">
+            <div class="pixel-box p-4 md:p-6 mb-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b-2 border-pixeldark pb-4">
+                    <div>
+                        <h2 class="text-lg md:text-xl font-pixel text-matcha-900 flex items-center gap-2">
+                            <i class="fa-solid fa-boxes-packing text-pink-400"></i> MANAJEMEN & KOMPARASI VENDOR LENGKAP
+                        </h2>
+                        <p class="text-xs text-gray-600 mt-1 font-semibold">Bandingkan opsi vendor di 16 kategori utama, pilih deal, dan otomatis masuk ke anggaran utama!</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="openAddVendorModal()" class="pixel-btn bg-pink-400 text-white px-3 py-2 text-xs flex items-center gap-1">
+                            <i class="fa-solid fa-plus"></i> Tambah Opsi Vendor
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-matcha-100 p-4 border-2 border-pixeldark">
+                    <div>
+                        <label class="block text-xs font-bold text-matcha-900 mb-1 font-pixel">Pilih Kategori Vendor:</label>
+                        <select id="vendor-category-select" onchange="renderVendorComparison()" class="pixel-input w-full p-2 text-xs bg-white font-bold">
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <div class="text-xs text-gray-700 bg-white p-2 border-2 border-pixeldark w-full font-semibold">
+                            <span>Status Kategori: </span>
+                            <span id="cat-deal-status" class="font-bold text-pink-600">Belum Ada Deal</span>
+                        </div>
+                    </div>
+                    <div class="flex items-end justify-end">
+                        <button onclick="resetVendorCategoryToDefault()" class="pixel-btn bg-white text-gray-700 px-3 py-2 text-xs">
+                            <i class="fa-solid fa-rotate-left"></i> Reset Kategori Ini
+                        </button>
+                    </div>
+                </div>
+
+                <div id="vendor-comparison-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                </div>
+            </div>
+        </section>
+
+        <!-- SESERAHAN SECTION -->
+        <section id="section-seserahan" class="tab-section hidden">
+            <div class="pixel-box-pink p-4 md:p-6 mb-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b-2 border-pixeldark pb-4">
+                    <div>
+                        <h2 class="text-lg md:text-xl font-pixel text-pink-600 flex items-center gap-2">
+                            <i class="fa-solid fa-gift text-matcha-700"></i> HANTARAN & SESERAHAN TRACKER
+                        </h2>
+                        <p class="text-xs text-gray-600 mt-1 font-semibold">Kelola seserahan dengan kategori custom (Bahan Pokok, Tas, Sepatu, dll), Brand, Platform (Shopee/TikTok/Offline), dan Selisih Penghematan.</p>
+                    </div>
+                    <button onclick="openAddSeserahanModal()" class="pixel-btn bg-matcha-500 text-white px-3 py-2 text-xs flex items-center gap-1">
+                        <i class="fa-solid fa-plus"></i> Tambah Item Seserahan
+                    </button>
+                </div>
+
+                <div class="flex flex-wrap gap-2 mb-6 items-center justify-between">
+                    <div class="flex flex-wrap gap-2" id="seserahan-cat-filters"></div>
+                    <div class="flex gap-2">
+                        <input type="text" id="new-seserahan-cat-input" placeholder="Kategori baru..." class="pixel-input text-xs p-1.5 bg-white">
+                        <button onclick="addNewSeserahanCategory()" class="pixel-btn bg-pink-400 text-white px-3 py-1.5 text-xs">+ Tambah Kategori</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
+                    <div class="bg-white p-3 border-2 border-pixeldark text-center">
+                        <div class="text-[10px] font-pixel text-gray-500">TOTAL ITEM</div>
+                        <div class="text-base font-bold font-pixel text-matcha-900" id="seserahan-stat-total">0</div>
+                    </div>
+                    <div class="bg-white p-3 border-2 border-pixeldark text-center">
+                        <div class="text-[10px] font-pixel text-gray-500">TOTAL PERKIRAAN</div>
+                        <div class="text-xs font-bold font-pixel text-pink-600" id="seserahan-stat-est">Rp 0</div>
+                    </div>
+                    <div class="bg-white p-3 border-2 border-pixeldark text-center">
+                        <div class="text-[10px] font-pixel text-gray-500">TOTAL HARGA ASLI</div>
+                        <div class="text-xs font-bold font-pixel text-matcha-700" id="seserahan-stat-act">Rp 0</div>
+                    </div>
+                    <div class="bg-white p-3 border-2 border-pixeldark text-center">
+                        <div class="text-[10px] font-pixel text-gray-500">TOTAL SELISIH (HEMAT)</div>
+                        <div class="text-xs font-bold font-pixel text-matcha-900" id="seserahan-stat-profit">Rp 0</div>
+                    </div>
+                    <div class="bg-white p-3 border-2 border-pixeldark text-center">
+                        <div class="text-[10px] font-pixel text-gray-500">BOKS READY</div>
+                        <div class="text-base font-bold font-pixel text-pink-600" id="seserahan-stat-ready">0%</div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto bg-white border-2 border-pixeldark">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-matcha-100 border-b-2 border-pixeldark font-pixel text-[10px]">
+                            <tr>
+                                <th class="p-3">Kategori</th>
+                                <th class="p-3">Nama Barang</th>
+                                <th class="p-3">Brand</th>
+                                <th class="p-3">Platform</th>
+                                <th class="p-3">Perkiraan</th>
+                                <th class="p-3">Harga Asli</th>
+                                <th class="p-3">Selisih (Hemat)</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3">Catatan</th>
+                                <th class="p-3 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="seserahan-table-body" class="divide-y border-pixeldark">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- BUDGET SECTION -->
+        <section id="section-budget" class="tab-section hidden">
+            <div class="pixel-box p-4 md:p-6 mb-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b-2 border-pixeldark pb-4">
+                    <div>
+                        <h2 class="text-lg md:text-xl font-pixel text-matcha-900 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-pie text-pink-400"></i> ANGGARAN & DIAGRAM LINGKARAN PENGELUARAN
+                        </h2>
+                        <p class="text-xs text-gray-600 mt-1 font-semibold">Pantau alokasi budget, sisa anggaran, dan proporsi diagram lingkaran vendor deal.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold font-pixel">Batas Total Budget:</span>
+                        <input type="number" id="total-budget-limit" onchange="updateBudgetOverview()" class="pixel-input text-xs font-bold p-2 w-36 bg-white" value="180000000">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <div class="space-y-4">
+                        <div class="pixel-box-matcha p-4">
+                            <div class="text-xs font-pixel text-matcha-900">BATAS MAKSIMAL ANGGARAN</div>
+                            <div class="text-lg font-pixel font-bold text-matcha-900 mt-1" id="display-max-budget">Rp 180.000.000</div>
+                        </div>
+                        <div class="pixel-box-pink p-4">
+                            <div class="text-xs font-pixel text-pink-600">TOTAL DEAL / PENGELUARAN</div>
+                            <div class="text-lg font-pixel font-bold text-pink-600 mt-1" id="display-total-spent">Rp 0</div>
+                        </div>
+                        <div class="pixel-box p-4 bg-white">
+                            <div class="text-xs font-pixel text-gray-500">SISA ANGGARAN TERSISA</div>
+                            <div class="text-lg font-pixel font-bold text-gray-800 mt-1" id="display-remaining-budget">Rp 180.000.000</div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2 bg-white border-2 border-pixeldark p-4 flex flex-col items-center justify-center min-h-[280px]">
+                        <div class="text-xs font-pixel text-matcha-900 mb-2">DIAGRAM LINGKARAN ANGGARAN VENDOR DEAL</div>
+                        <div class="w-full max-w-md h-64">
+                            <canvas id="budgetChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-pixel text-xs text-matcha-900"><i class="fa-solid fa-receipt"></i> DETAIL LOG PENGELUARAN VENDOR DEAL</h3>
+                </div>
+
+                <div class="overflow-x-auto bg-white border-2 border-pixeldark">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-matcha-100 border-b-2 border-pixeldark font-pixel text-[10px]">
+                            <tr>
+                                <th class="p-3">Kategori</th>
+                                <th class="p-3">Vendor / Item</th>
+                                <th class="p-3">Biaya / Harga Asli</th>
+                                <th class="p-3">Status Pembayaran</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expense-table-body" class="divide-y border-pixeldark">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- CHECKLIST SECTION -->
+        <section id="section-checklist" class="tab-section hidden">
+            <div class="pixel-box-matcha p-4 md:p-6 mb-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b-2 border-pixeldark pb-4">
+                    <div>
+                        <h2 class="text-lg md:text-xl font-pixel text-matcha-900 flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-check text-pink-600"></i> TIMELINE & CHECKLIST PERSIAPAN (+1 HARI SETELAH ACARA)
+                        </h2>
+                        <p class="text-xs text-gray-600 mt-1 font-semibold">Daftar tugas terstruktur dari H-12 Bulan hingga +1 Hari Setelah Acara.</p>
+                    </div>
+                    <button onclick="openAddChecklistModal()" class="pixel-btn bg-pink-400 text-white px-3 py-2 text-xs flex items-center gap-1">
+                        <i class="fa-solid fa-plus"></i> Tambah Tugas Baru
+                    </button>
+                </div>
+
+                <div class="flex flex-wrap gap-2 mb-6" id="checklist-phase-tabs">
+                </div>
+
+                <div class="bg-white border-2 border-pixeldark p-4 mb-6">
+                    <div class="flex justify-between text-xs font-bold mb-2">
+                        <span id="phase-title-display" class="font-pixel text-matcha-900">Semua Fase Checklist</span>
+                        <span id="phase-progress-display" class="font-pixel text-pink-600">0/0 selesai</span>
+                    </div>
+                    <div id="checklist-items-container" class="space-y-2 mt-4">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- GUESTS SECTION -->
+        <section id="section-guests" class="tab-section hidden">
+            <div class="pixel-box p-4 md:p-6 mb-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b-2 border-pixeldark pb-4">
+                    <div>
+                        <h2 class="text-lg md:text-xl font-pixel text-matcha-900 flex items-center gap-2">
+                            <i class="fa-solid fa-users text-matcha-700"></i> BUKU TAMU & RSVP MANAGEMENT
+                        </h2>
+                        <p class="text-xs text-gray-600 mt-1 font-semibold">Kelola daftar undangan, jumlah total orang/pax, meja & hadiah (bisa diketik manual).</p>
+                    </div>
+                    <button onclick="openAddGuestModal()" class="pixel-btn bg-pink-400 text-white px-3 py-2 text-xs flex items-center gap-1">
+                        <i class="fa-solid fa-user-plus"></i> Tambah Undangan
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                    <div class="bg-matcha-100 p-3 border-2 border-pixeldark text-center">
+                        <div class="text-[10px] font-pixel text-matcha-900">TOTAL UNDANGAN</div>
+                        <div class="text-base font-bold font-pixel" id="guest-stat-total">0</div>
+                    </div>
+                    <div class="bg-pink-100 p-3 border-2 border-pixeldark text-center">
+                        <div class="text-[10px] font-pixel text-pink-600">TOTAL ORANG (PAX)</div>
+                        <div class="text-base font-bold font-pixel text-pink-600" id="guest-stat-pax">0</div>
+                    </div>
+                    <div class="bg-matcha-100 p-3 border-2 border-pixeldark text-center">
+                        <div class="text-[10px] font-pixel text-matcha-900">RSVP HADIR</div>
+                        <div class="text-base font-bold font-pixel text-matcha-700" id="guest-stat-confirmed">0</div>
+                    </div>
+                    <div class="bg-white p-3 border-2 border-pixeldark text-center">
+                        <div class="text-[10px] font-pixel text-gray-500">RSVP TIDAK/BELUM</div>
+                        <div class="text-base font-bold font-pixel text-gray-600" id="guest-stat-declined">0</div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto bg-white border-2 border-pixeldark">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-matcha-100 border-b-2 border-pixeldark font-pixel text-[10px]">
+                            <tr>
+                                <th class="p-3">Nama Tamu</th>
+                                <th class="p-3">Kategori</th>
+                                <th class="p-3">Jumlah Pax</th>
+                                <th class="p-3">Status RSVP</th>
+                                <th class="p-3">Nomor Meja</th>
+                                <th class="p-3">Hadiah (Bisa Ketik Manual)</th>
+                                <th class="p-3 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="guest-table-body" class="divide-y border-pixeldark">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-7xl mx-auto px-4 mt-8">
+        <div class="pixel-box-matcha p-4 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-bold">
+            <div class="flex items-center gap-2 font-pixel text-matcha-900 text-[11px]">
+                <i class="fa-solid fa-cloud"></i> DATA TERSIMPAN OTOMATIS DI SERVER & TERSINKRON UNTUK SEMUA PERANGKAT
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <a href="/data.html" target="_blank" rel="noopener" class="pixel-btn bg-matcha-500 text-white px-3 py-1.5 text-xs inline-block">
+                    <i class="fa-solid fa-database"></i> Lihat Semua Data
+                </a>
+                <button onclick="exportDataJSON()" class="pixel-btn bg-white text-matcha-900 px-3 py-1.5 text-xs">
+                    <i class="fa-solid fa-download"></i> Ekspor Data (JSON)
+                </button>
+                <label class="pixel-btn bg-white text-matcha-900 px-3 py-1.5 text-xs cursor-pointer inline-block">
+                    <i class="fa-solid fa-upload"></i> Impor Data
+                    <input type="file" id="import-file" onchange="importDataJSON(event)" class="hidden" accept=".json">
+                </label>
+                <button onclick="window.print()" class="pixel-btn bg-pink-200 text-pink-600 px-3 py-1.5 text-xs">
+                    <i class="fa-solid fa-print"></i> Cetak / PDF
+                </button>
+                <button onclick="confirmResetAllData()" class="pixel-btn bg-red-400 text-white px-3 py-1.5 text-xs">
+                    <i class="fa-solid fa-trash-can"></i> Reset Semua Data
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <div id="modal-backdrop" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+        <div class="pixel-box bg-white max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto relative" id="modal-box">
+            <button onclick="closeModal()" class="absolute top-3 right-3 text-pixeldark font-bold font-pixel hover:text-red-500">X</button>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <div id="toast" class="hidden pixel-box-matcha px-4 py-3 font-pixel text-xs text-matcha-900 flex items-center gap-2 shadow-lg">
+        <i class="fa-solid fa-bell text-pink-600"></i>
+        <span id="toast-msg">Notifikasi</span>
+    </div>
+
+    <script src="/js/planner-sync.js"></script>
+    <script>
+        const INITIAL_VENDORS = {
+            "venue": {
+                name: "a) Venue & Ballroom",
+                icon: "fa-building-columns",
+                options: [
+                    { id: "v-1", name: "The Royal Convention Palembang", price: 120000000, rating: 5, packageItems: "ALL Vendor", status: "Dipertimbangkan" },
+                    { id: "v-2", name: "Fave Hotel", price: 130000000, rating: 5, packageItems: "500 PAX", status: "Dipertimbangkan" },
+                    { id: "v-3", name: "Aston Hotel Palembang", price: 130000000, rating: 5, packageItems: "500 PAX (250 Undangan)", status: "Dipertimbangkan" }
+                ]
+            },
+            "attire": { name: "b) Attire & Busana", icon: "fa-vest-patches", options: [] },
+            "makeup": {
+                name: "c) Makeup & Hairdo / Hijab Styling",
+                icon: "fa-wand-magic-sparkles",
+                options: [
+                    { id: "m-1", name: "Glow & Flawless MUA Studio", price: 12000000, rating: 5, packageItems: "MUA Akad & Resepsi", status: "Dipertimbangkan" }
+                ]
+            },
+            "catering": {
+                name: "d) Catering & Konsumsi",
+                icon: "fa-utensils",
+                options: [
+                    { id: "c-1", name: "Matcha Delicious Catering", price: 45000000, rating: 5, packageItems: "Buffet 500 Pax, 4 Gubokan", status: "DEAL" }
+                ]
+            },
+            "decoration": {
+                name: "e) Dekorasi & Florist",
+                icon: "fa-fan",
+                options: [
+                    { id: "d-1", name: "Bloom & Garden Decoration", price: 28000000, rating: 5, packageItems: "Pelaminan 12m", status: "DEAL" }
+                ]
+            },
+            "documentation": {
+                name: "f) Dokumentasi (Foto & Video)",
+                icon: "fa-camera-retro",
+                options: [
+                    { id: "doc-1", name: "Pixel Frame Photography", price: 14000000, rating: 5, packageItems: "2 Fotografer, 2 Videografer", status: "DEAL" }
+                ]
+            },
+            "entertainment": { name: "g) Entertainment & Music", icon: "fa-music", options: [{ id: "e-1", name: "Harmoni Acoustic", price: 7500000, rating: 5, status: "DEAL" }] },
+            "mc": { name: "h) Master of Ceremony (MC)", icon: "fa-microphone-lines", options: [{ id: "mc-1", name: "Bapak Dwiputra", price: 3500000, rating: 5, status: "DEAL" }] },
+            "invitation": { name: "i) Undangan & Web Digital", icon: "fa-envelope-open-text", options: [{ id: "i-1", name: "Matcha Card", price: 4000000, rating: 5, status: "DEAL" }] },
+            "souvenir": { name: "j) Souvenir & Favors", icon: "fa-box-open", options: [{ id: "s-1", name: "Green Crafted Souvenir", price: 5000000, rating: 5, status: "DEAL" }] },
+            "photobooth": { name: "k) Photo Booth", icon: "fa-images", options: [{ id: "p-1", name: "SnapBox Booth", price: 4500000, rating: 5, status: "DEAL" }] },
+            "organizer": { name: "l) Wedding Organizer", icon: "fa-clipboard-user", options: [{ id: "wo-1", name: "Matcha Match WO", price: 12500000, rating: 5, status: "DEAL" }] },
+            "mahar": { name: "m) Mahar & Ring Box", icon: "fa-ring", options: [{ id: "mh-1", name: "Aesthetic Ring Box", price: 2000000, rating: 5, status: "DEAL" }] },
+            "sound": { name: "n) Sound System & Generator", icon: "fa-tower-cell", options: [{ id: "snd-1", name: "VoltSound", price: 3500000, rating: 5, status: "DEAL" }] },
+            "henna": { name: "o) Henna & Nail Art", icon: "fa-hand-sparkles", options: [{ id: "hn-1", name: "White Henna Art", price: 1200000, rating: 5, status: "DEAL" }] },
+            "transport": { name: "p) Transportasi", icon: "fa-car-side", options: [{ id: "tr-1", name: "Royal Rent Car", price: 2500000, rating: 5, status: "DEAL" }] }
+        };
+
+        const INITIAL_SESERAHAN = [
+            { id: "s-item-1", category: "Pakaian & Busana", name: "Set Kebaya Modern", brandName: "Batik Keris", platform: "Offline", estCost: 2500000, actCost: 2400000, status: "Belum Dibeli", notes: "Rose Gold" },
+            { id: "s-item-2", category: "tas", name: "Tas Pesta", brandName: "Coach", platform: "Shopee", estCost: 2500000, actCost: 2450000, status: "Sudah Dibeli", notes: "Matcha" },
+            { id: "s-item-3", category: "sepatu", name: "Sepatu Heels", brandName: "Charles & Keith", platform: "Shopee", estCost: 1500000, actCost: 1400000, status: "Sudah Dibeli", notes: "Size 38" },
+            { id: "s-item-4", category: "bahan pokok", name: "Beras Premium 10kg & Minyak", brandName: "Sania", platform: "Offline", estCost: 350000, actCost: 320000, status: "Belum Dibeli", notes: "Hantaran" }
+        ];
+
+        const INITIAL_CHECKLIST = [
+            { id: "chk-1", phase: "H-12 s/d H-9 Bulan", title: "Menentukan Konsep Pernikahan & Total Budget", completed: true },
+            { id: "chk-2", phase: "H-12 s/d H-9 Bulan", title: "Booking Venue & Gedung Pernikahan", completed: true },
+            { id: "chk-3", phase: "H-8 s/d H-6 Bulan", title: "Booking Catering, MUA, dan Dekorasi Utama", completed: true },
+            { id: "chk-4", phase: "H-8 s/d H-6 Bulan", title: "Fitting / Sewa Busana Pengantin & Orang Tua", completed: true },
+            { id: "chk-5", phase: "H-5 s/d H-3 Bulan", title: "Mendaftar Ke KUA & Berkas Syarat Nikah", completed: false },
+            { id: "chk-6", phase: "H-5 s/d H-3 Bulan", title: "Membeli & Menyusun Barang Seserahan / Hantaran", completed: true },
+            { id: "chk-7", phase: "H-2 s/d H-1 Bulan", title: "Cetak & Sebar Undangan (Fisik & Digital)", completed: false },
+            { id: "chk-8", phase: "H-2 s/d H-1 Bulan", title: "Technical Meeting Final dengan Seluruh Vendor & WO", completed: false },
+            { id: "chk-9", phase: "Minggu H & Hari H", title: "Gladi Bersih & Penyerahan Kotak Hantaran Ke WO", completed: false },
+            { id: "chk-10", phase: "+1 Hari Setelah Acara", title: "Mengembalikan barang sewaan (mobil pengantin, busana tambahan, dll)", completed: false },
+            { id: "chk-11", phase: "+1 Hari Setelah Acara", title: "Menghitung & Merekap amplop hadiah / sumbangan dari tamu", completed: false },
+            { id: "chk-12", phase: "+1 Hari Setelah Acara", title: "Melunasi sisa tagihan pembayaran vendor yang belum lunas", completed: false },
+            { id: "chk-13", phase: "+1 Hari Setelah Acara", title: "Mengecek & mengunduh file mentah foto/video dari fotografer", completed: false }
+        ];
+
+        const INITIAL_GUESTS = [
+            { id: "g-1", name: "Papa Agus", category: "Keluarga Bride", pax: 5, rsvp: "Belum Konfirmasi", table: "VIP", gift: "-" },
+            { id: "g-2", name: "Yuk Puput", category: "Keluarga Bride", pax: 5, rsvp: "Belum Konfirmasi", table: "VIP", gift: "-" },
+            { id: "g-3", name: "Makwo Elly", category: "Keluarga Bride", pax: 5, rsvp: "Belum Konfirmasi", table: "VIP", gift: "-" },
+            { id: "g-4", name: "Tante Enny", category: "Keluarga Bride", pax: 6, rsvp: "Belum Konfirmasi", table: "VIP", gift: "-" },
+            { id: "g-5", name: "Tante Novi", category: "Keluarga Bride", pax: 5, rsvp: "Belum Konfirmasi", table: "VIP", gift: "-" },
+            { id: "g-6", name: "SDN 95", category: "Teman Kantor", pax: 42, rsvp: "Belum Konfirmasi", table: "-", gift: "-" },
+            { id: "g-7", name: "SDN 127", category: "Teman Kantor", pax: 18, rsvp: "Belum Konfirmasi", table: "-", gift: "-" },
+            { id: "g-8", name: "Keluarga Nenek lilut", category: "Keluarga Bride", pax: 15, rsvp: "Belum Konfirmasi", table: "-", gift: "-" },
+            { id: "g-9", name: "Keluarga Papa", category: "Keluarga Bride", pax: 30, rsvp: "Belum Konfirmasi", table: "-", gift: "-" },
+            { id: "g-10", name: "Keluarga Lahat", category: "Keluarga Bride", pax: 16, rsvp: "Belum Konfirmasi", table: "-", gift: "-" }
+        ];
+
+        const DEFAULT_STATE = { groomName: 'Dandi', brideName: 'Nadirra', weddingDate: '2027-12-19', maxBudget: 180000000, vendors: INITIAL_VENDORS, seserahan: INITIAL_SESERAHAN, checklist: INITIAL_CHECKLIST, guests: INITIAL_GUESTS };
+        const cloneDefaults = () => JSON.parse(JSON.stringify(DEFAULT_STATE));
+
+        // State awal sementara; data sebenarnya dimuat dari database saat halaman dibuka.
+        let state = cloneDefaults();
+
+        // ===== SINKRONISASI DATABASE (semua orang yang punya link melihat data yang sama) =====
+        let syncedMap = new Map();   // snapshot terakhir yang sudah sama dengan server
+        let syncTimer = null;
+        let syncing = false;
+        let dirty = false;
+        let dataLoaded = false;
+        const POLL_MS = 5000;
+
+        function setSyncStatus(mode, text) {
+            const el = document.getElementById('sync-status');
+            if (!el) return;
+            const styles = {
+                ok: 'bg-matcha-100 text-matcha-900',
+                busy: 'bg-yellow-100 text-yellow-800',
+                error: 'bg-red-100 text-red-700'
+            };
+            const icons = { ok: 'fa-cloud', busy: 'fa-arrows-rotate fa-spin', error: 'fa-triangle-exclamation' };
+            el.className = `pixel-btn px-3 py-2 text-[11px] flex items-center gap-2 ${styles[mode]}`;
+            el.innerHTML = `<i class="fa-solid ${icons[mode]}"></i> <span>${text}</span>`;
+        }
+
+        function saveState() {
+            updateGlobalOverview();
+            if (!dataLoaded) return;
+            dirty = true;
+            setSyncStatus('busy', 'Menyimpan...');
+            clearTimeout(syncTimer);
+            syncTimer = setTimeout(flushToServer, 400);
+        }
+
+        async function flushToServer() {
+            if (syncing) { syncTimer = setTimeout(flushToServer, 300); return; }
+            syncing = true;
+            dirty = false;
+            const { upserts, deletes, nextMap } = PlannerSync.diff(syncedMap, PlannerSync.toRecords(state, syncedMap));
+            try {
+                await PlannerSync.push(upserts, deletes);
+                syncedMap = nextMap;
+                if (!dirty) setSyncStatus('ok', 'Tersimpan & tersinkron');
+            } catch (err) {
+                dirty = true;
+                setSyncStatus('error', 'Gagal menyimpan, mencoba lagi...');
+                clearTimeout(syncTimer);
+                syncTimer = setTimeout(flushToServer, 4000);
+            } finally {
+                syncing = false;
+            }
+        }
+
+        function isUserEditing() {
+            const a = document.activeElement;
+            const modalOpen = !document.getElementById('modal-backdrop').classList.contains('hidden');
+            return modalOpen || (a && ['INPUT', 'TEXTAREA', 'SELECT'].includes(a.tagName) && a.id !== 'vendor-category-select');
+        }
+
+        // Ambil perubahan terbaru dari orang lain / perangkat lain.
+        async function pullFromServer(force) {
+            if (syncing || dirty) return;
+            if (!force && isUserEditing()) return;
+            try {
+                const records = await PlannerSync.fetchAll();
+                if (syncing || dirty) return;
+                const serverMap = PlannerSync.toMap(records);
+                if (PlannerSync.mapSignature(serverMap) !== PlannerSync.mapSignature(syncedMap)) {
+                    syncedMap = serverMap;
+                    state = PlannerSync.fromRecords(records, DEFAULT_STATE);
+                    initAllViews();
+                }
+                setSyncStatus('ok', 'Tersimpan & tersinkron');
+            } catch (err) {
+                setSyncStatus('error', 'Offline - tidak bisa memuat data');
+            }
+        }
+
+        // Data lama yang pernah tersimpan di browser ini (sebelum ada sinkronisasi).
+        function readLegacyLocalState() {
+            try {
+                if (!localStorage.getItem('wedding_vendors')) return null;
+                return {
+                    groomName: localStorage.getItem('wedding_groom') || DEFAULT_STATE.groomName,
+                    brideName: localStorage.getItem('wedding_bride') || DEFAULT_STATE.brideName,
+                    weddingDate: localStorage.getItem('wedding_date') || DEFAULT_STATE.weddingDate,
+                    maxBudget: parseFloat(localStorage.getItem('wedding_max_budget')) || DEFAULT_STATE.maxBudget,
+                    vendors: JSON.parse(localStorage.getItem('wedding_vendors')) || cloneDefaults().vendors,
+                    seserahan: JSON.parse(localStorage.getItem('wedding_seserahan')) || [],
+                    checklist: JSON.parse(localStorage.getItem('wedding_checklist')) || [],
+                    guests: JSON.parse(localStorage.getItem('wedding_guests')) || []
+                };
+            } catch (e) { return null; }
+        }
+
+        async function loadInitialData() {
+            setSyncStatus('busy', 'Memuat data...');
+            try {
+                const records = await PlannerSync.fetchAll();
+                if (records.length === 0) {
+                    // Database masih kosong: isi dengan data lama di browser ini atau data awal.
+                    state = readLegacyLocalState() || cloneDefaults();
+                    const initial = PlannerSync.toRecords(state, new Map());
+                    await PlannerSync.push(initial, []);
+                    syncedMap = PlannerSync.toMap(initial);
+                } else {
+                    state = PlannerSync.fromRecords(records, DEFAULT_STATE);
+                    syncedMap = PlannerSync.toMap(records);
+                }
+                dataLoaded = true;
+                setSyncStatus('ok', 'Tersimpan & tersinkron');
+            } catch (err) {
+                setSyncStatus('error', 'Offline - tidak bisa memuat data');
+                showToast('Gagal memuat data dari server. Coba muat ulang halaman.');
+            }
+        }
+
+        function formatRupiah(number) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(number);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => { toast.classList.add('hidden'); }, 3000);
+        }
+
+        function init3DCanvas() {
+            const container = document.getElementById('three-canvas-container');
+            if (!container) return;
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.z = 15;
+
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+
+            const geometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+            const materials = [
+                new THREE.MeshBasicMaterial({ color: 0x93B874 }),
+                new THREE.MeshBasicMaterial({ color: 0xE8A0BF }),
+                new THREE.MeshBasicMaterial({ color: 0xFFF0F5 }),
+                new THREE.MeshBasicMaterial({ color: 0x7A9A60 })
+            ];
+
+            const floatingPixels = [];
+            for (let i = 0; i < 30; i++) {
+                const mat = materials[Math.floor(Math.random() * materials.length)];
+                const cube = new THREE.Mesh(geometry, mat);
+                cube.position.x = (Math.random() - 0.5) * 30;
+                cube.position.y = (Math.random() - 0.5) * 15;
+                cube.position.z = (Math.random() - 0.5) * 10;
+                cube.rotation.x = Math.random() * Math.PI;
+                cube.rotation.y = Math.random() * Math.PI;
+                cube.userData = {
+                    rotSpeedX: (Math.random() - 0.5) * 0.02,
+                    rotSpeedY: (Math.random() - 0.5) * 0.02,
+                    floatSpeed: 0.005 + Math.random() * 0.01
+                };
+                scene.add(cube);
+                floatingPixels.push(cube);
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+                floatingPixels.forEach(p => {
+                    p.rotation.x += p.userData.rotSpeedX;
+                    p.rotation.y += p.userData.rotSpeedY;
+                    p.position.y += Math.sin(Date.now() * 0.002 + p.position.x) * p.userData.floatSpeed;
+                });
+                renderer.render(scene, camera);
+            }
+            animate();
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-section').forEach(sec => sec.classList.add('hidden'));
+
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            document.getElementById(`section-${tabId}`).classList.remove('hidden');
+
+            if (tabId === 'budget') {
+                renderBudgetChart();
+            }
+        }
+
+        function initCountdown() {
+            function updateTimer() {
+                const target = new Date(state.weddingDate + 'T08:00:00').getTime();
+                const now = new Date().getTime();
+                const diff = target - now;
+
+                if (diff <= 0) return;
+
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+                document.getElementById('cd-days').innerText = String(days).padStart(2, '0');
+                document.getElementById('cd-hours').innerText = String(hours).padStart(2, '0');
+                document.getElementById('cd-mins').innerText = String(mins).padStart(2, '0');
+                document.getElementById('cd-secs').innerText = String(secs).padStart(2, '0');
+            }
+            updateTimer();
+            clearInterval(window.__countdownTimer);
+            window.__countdownTimer = setInterval(updateTimer, 1000);
+        }
+
+        function updateGlobalOverview() {
+            let totalSpent = 0;
+            Object.keys(state.vendors).forEach(catKey => {
+                const dealOption = state.vendors[catKey].options.find(o => o.status === 'DEAL' || o.isDeal);
+                if (dealOption) totalSpent += parseFloat(dealOption.price || 0);
+            });
+
+            const totalTasks = state.checklist.length;
+            const completedTasks = state.checklist.filter(c => c.completed).length;
+            const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+            document.getElementById('overall-progress-percent').innerText = `${progressPercent}%`;
+            document.getElementById('overall-progress-bar').style.width = `${progressPercent}%`;
+            document.getElementById('completed-tasks-summary').innerText = `Checklist Selesai: ${completedTasks}/${totalTasks}`;
+            document.getElementById('budget-spent-summary').innerText = `Total Terpakai: ${formatRupiah(totalSpent)}`;
+
+            document.getElementById('display-max-budget').innerText = formatRupiah(state.maxBudget);
+            document.getElementById('display-total-spent').innerText = formatRupiah(totalSpent);
+            
+            const remaining = state.maxBudget - totalSpent;
+            const remElem = document.getElementById('display-remaining-budget');
+            remElem.innerText = formatRupiah(remaining);
+            if (remaining < 0) remElem.classList.add('text-red-500');
+            else remElem.classList.remove('text-red-500');
+        }
+
+        function initVendorDropdown() {
+            const select = document.getElementById('vendor-category-select');
+            const previous = select.value;
+            select.innerHTML = '';
+            Object.keys(state.vendors).forEach(key => {
+                const cat = state.vendors[key];
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.innerText = `${cat.name} (${cat.options.length} pilihan)`;
+                select.appendChild(opt);
+            });
+            if (previous && state.vendors[previous]) select.value = previous;
+            renderVendorComparison();
+        }
+
+        function renderVendorComparison() {
+            const selectedKey = document.getElementById('vendor-category-select').value || 'venue';
+            const categoryData = state.vendors[selectedKey] || state.vendors[Object.keys(state.vendors)[0]];
+            const grid = document.getElementById('vendor-comparison-grid');
+            grid.innerHTML = '';
+
+            const dealFound = categoryData.options.find(o => o.status === 'DEAL' || o.isDeal);
+            const statusElem = document.getElementById('cat-deal-status');
+            if (dealFound) {
+                statusElem.innerText = `DEAL: ${dealFound.name}`;
+                statusElem.className = 'font-bold text-matcha-700';
+            } else {
+                statusElem.innerText = 'Belum Ada Deal';
+                statusElem.className = 'font-bold text-pink-600';
+            }
+
+            if (categoryData.options.length === 0) {
+                grid.innerHTML = `<div class="col-span-full p-6 text-center text-gray-500 font-bold bg-white border-2 border-dashed border-pixeldark">Belum ada vendor di kategori ini. Silakan tambah opsi.</div>`;
+                return;
+            }
+
+            categoryData.options.forEach(option => {
+                const isDeal = option.status === 'DEAL' || option.isDeal;
+                const card = document.createElement('div');
+                card.className = `pixel-box p-4 flex flex-col justify-between relative ${isDeal ? 'bg-matcha-100 border-4 border-matcha-700' : 'bg-white'}`;
+                
+                card.innerHTML = `
+                    <div>
+                        ${isDeal ? '<div class="absolute -top-3 -right-2 bg-matcha-700 text-white font-pixel text-[9px] px-2 py-0.5 border border-pixeldark shadow">✔ DIPILIH (DEAL)</div>' : ''}
+                        <div class="flex justify-between items-start mb-2">
+                            <input type="text" value="${option.name}" onchange="editVendorField('${selectedKey}', '${option.id}', 'name', this.value)" class="pixel-input text-xs font-pixel font-bold p-1 bg-white w-full mr-2">
+                        </div>
+                        <div class="mb-3">
+                            <span class="text-[10px] font-bold">Harga (Rp):</span>
+                            <input type="number" value="${option.price}" onchange="editVendorField('${selectedKey}', '${option.id}', 'price', parseFloat(this.value))" class="pixel-input text-xs font-bold p-1 text-pink-600 bg-white w-full">
+                        </div>
+                        <div class="space-y-2 text-xs mb-4">
+                            <div class="bg-white/80 p-2 border border-pixeldark">
+                                <span class="font-bold text-matcha-900 block mb-1">Paket:</span>
+                                <input type="text" value="${option.packageItems || ''}" onchange="editVendorField('${selectedKey}', '${option.id}', 'packageItems', this.value)" class="pixel-input text-[11px] p-1 w-full bg-white">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-pixeldark flex items-center justify-between gap-2">
+                        <select onchange="updateVendorStatus('${selectedKey}', '${option.id}', this.value)" class="pixel-input text-xs p-1 font-bold bg-white w-full">
+                            <option value="Dipertimbangkan" ${!isDeal ? 'selected' : ''}>Dipertimbangkan</option>
+                            <option value="DEAL" ${isDeal ? 'selected' : ''}>DIPILIH (DEAL)</option>
+                        </select>
+                        <button onclick="deleteVendorOption('${selectedKey}', '${option.id}')" class="pixel-btn bg-red-100 text-red-600 px-2 py-1 text-xs">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function editVendorField(catKey, optionId, field, val) {
+            const opt = state.vendors[catKey].options.find(o => o.id === optionId);
+            if (opt) {
+                opt[field] = val;
+                saveState();
+                renderVendorComparison();
+                renderExpenseTable();
+                showToast('Vendor diperbarui!');
+            }
+        }
+
+        function updateVendorStatus(categoryKey, optionId, newStatus) {
+            const options = state.vendors[categoryKey].options;
+            if (newStatus === 'DEAL') {
+                options.forEach(o => {
+                    o.isDeal = (o.id === optionId);
+                    o.status = (o.id === optionId) ? 'DEAL' : 'Dipertimbangkan';
+                });
+            } else {
+                const target = options.find(o => o.id === optionId);
+                if (target) { target.isDeal = false; target.status = 'Dipertimbangkan'; }
+            }
+            saveState();
+            renderVendorComparison();
+            renderExpenseTable();
+            showToast('Status vendor diperbarui!');
+        }
+
+        function deleteVendorOption(categoryKey, optionId) {
+            if (confirm('Hapus opsi vendor ini?')) {
+                state.vendors[categoryKey].options = state.vendors[categoryKey].options.filter(o => o.id !== optionId);
+                saveState();
+                renderVendorComparison();
+                renderExpenseTable();
+                showToast('Opsi vendor dihapus.');
+            }
+        }
+
+        function openAddVendorModal() {
+            const categoryKey = document.getElementById('vendor-category-select').value;
+            const modalBody = document.getElementById('modal-body');
+            modalBody.innerHTML = `
+                <h3 class="font-pixel text-xs text-matcha-900 mb-4"><i class="fa-solid fa-plus text-pink-500"></i> TAMBAH OPSI VENDOR</h3>
+                <form onsubmit="saveNewVendorOption(event, '${categoryKey}')" class="space-y-3 text-xs">
+                    <div>
+                        <label class="block font-bold mb-1">Nama Vendor:</label>
+                        <input type="text" id="nv-name" required class="pixel-input w-full p-2 bg-white" placeholder="Nama Vendor">
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">Harga (Rp):</label>
+                        <input type="number" id="nv-price" required class="pixel-input w-full p-2 bg-white" placeholder="10000000">
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">Paket:</label>
+                        <input type="text" id="nv-package" class="pixel-input w-full p-2 bg-white" placeholder="Detail paket">
+                    </div>
+                    <div class="pt-2 flex justify-end gap-2">
+                        <button type="button" onclick="closeModal()" class="pixel-btn bg-gray-200 text-gray-700 px-3 py-2">Batal</button>
+                        <button type="submit" class="pixel-btn bg-matcha-500 text-white px-4 py-2">Simpan</button>
+                    </div>
+                </form>
+            `;
+            document.getElementById('modal-backdrop').classList.remove('hidden');
+        }
+
+        function saveNewVendorOption(e, categoryKey) {
+            e.preventDefault();
+            const newOpt = {
+                id: 'v-custom-' + Date.now(),
+                name: document.getElementById('nv-name').value,
+                price: parseFloat(document.getElementById('nv-price').value || 0),
+                rating: 5,
+                packageItems: document.getElementById('nv-package').value,
+                status: "Dipertimbangkan"
+            };
+            state.vendors[categoryKey].options.push(newOpt);
+            saveState();
+            closeModal();
+            renderVendorComparison();
+            showToast('Vendor ditambahkan!');
+        }
+
+        function resetVendorCategoryToDefault() {
+            const categoryKey = document.getElementById('vendor-category-select').value;
+            if (confirm('Reset kategori ini ke default?')) {
+                if (INITIAL_VENDORS[categoryKey]) {
+                    state.vendors[categoryKey] = JSON.parse(JSON.stringify(INITIAL_VENDORS[categoryKey]));
+                    saveState();
+                    renderVendorComparison();
+                    renderExpenseTable();
+                    showToast('Kategori direset.');
+                }
+            }
+        }
+
+        let currentSeserahanCat = 'ALL';
+
+        function getSeserahanCategories() {
+            const defaultCats = ['Pakaian & Busana', 'tas', 'sepatu', 'bahan pokok', 'Makeup & Skincare', 'Perhiasan & Emas', 'Perlengkapan Ibadah'];
+            const existing = state.seserahan.map(s => s.category);
+            return Array.from(new Set([...defaultCats, ...existing]));
+        }
+
+        function addNewSeserahanCategory() {
+            const input = document.getElementById('new-seserahan-cat-input');
+            const val = input.value.trim();
+            if (!val) return;
+            openAddSeserahanModalWithCategory(val);
+            input.value = '';
+        }
+
+        function renderSeserahanFilters() {
+            const categories = ['ALL', ...getSeserahanCategories()];
+            const filterContainer = document.getElementById('seserahan-cat-filters');
+            filterContainer.innerHTML = '';
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = `pixel-btn px-3 py-1 text-xs ${currentSeserahanCat === cat ? 'bg-pink-400 text-white' : 'bg-white text-gray-700'}`;
+                btn.innerText = cat === 'ALL' ? 'Semua Kategori' : cat;
+                btn.onclick = () => { currentSeserahanCat = cat; renderSeserahanFilters(); renderSeserahanTable(); };
+                filterContainer.appendChild(btn);
+            });
+        }
+
+        function renderSeserahanTable() {
+            const tbody = document.getElementById('seserahan-table-body');
+            tbody.innerHTML = '';
+
+            const filtered = currentSeserahanCat === 'ALL' ? state.seserahan : state.seserahan.filter(s => s.category === currentSeserahanCat);
+
+            let totalEst = 0, totalAct = 0, totalProfit = 0, readyCount = 0;
+            state.seserahan.forEach(i => {
+                const est = parseFloat(i.estCost || 0);
+                const act = parseFloat(i.actCost || 0);
+                totalEst += est;
+                totalAct += act;
+                totalProfit += (est - act);
+                if (i.status === 'Boks/Hias Ready' || i.status === 'Sudah Dibeli') readyCount++;
+            });
+
+            document.getElementById('seserahan-stat-total').innerText = state.seserahan.length;
+            document.getElementById('seserahan-stat-est').innerText = formatRupiah(totalEst);
+            document.getElementById('seserahan-stat-act').innerText = formatRupiah(totalAct);
+            
+            const profitElem = document.getElementById('seserahan-stat-profit');
+            profitElem.innerText = formatRupiah(totalProfit);
+            if (totalProfit < 0) {
+                profitElem.className = 'text-xs font-bold font-pixel text-red-500';
+            } else {
+                profitElem.className = 'text-xs font-bold font-pixel text-matcha-900';
+            }
+
+            document.getElementById('seserahan-stat-ready').innerText = state.seserahan.length > 0 ? `${Math.round((readyCount/state.seserahan.length)*100)}%` : '0%';
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="p-4 text-center text-gray-400 font-semibold">Belum ada item seserahan di kategori ini.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(item => {
+                const est = parseFloat(item.estCost || 0);
+                const act = parseFloat(item.actCost || 0);
+                const diff = est - act;
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-matcha-100/50';
+                tr.innerHTML = `
+                    <td class="p-3 font-semibold">${item.category}</td>
+                    <td class="p-3 font-bold text-matcha-900">
+                        <input type="text" value="${item.name}" onchange="editSeserahanField('${item.id}', 'name', this.value)" class="pixel-input text-xs p-1 bg-white w-full">
+                    </td>
+                    <td class="p-3">
+                        <input type="text" value="${item.brandName || ''}" placeholder="Brand..." onchange="editSeserahanField('${item.id}', 'brandName', this.value)" class="pixel-input text-xs p-1 bg-white w-full">
+                    </td>
+                    <td class="p-3">
+                        <select onchange="editSeserahanField('${item.id}', 'platform', this.value)" class="pixel-input text-[11px] p-1 font-bold">
+                            <option value="Shopee" ${item.platform==='Shopee'?'selected':''}>Shopee</option>
+                            <option value="TikTok" ${item.platform==='TikTok'?'selected':''}>TikTok</option>
+                            <option value="Offline" ${item.platform==='Offline'?'selected':''}>Offline</option>
+                        </select>
+                    </td>
+                    <td class="p-3">
+                        <input type="number" value="${item.estCost}" onchange="editSeserahanField('${item.id}', 'estCost', parseFloat(this.value))" class="pixel-input text-xs p-1 bg-white w-24">
+                    </td>
+                    <td class="p-3 font-bold text-pink-600">
+                        <input type="number" value="${item.actCost}" onchange="editSeserahanField('${item.id}', 'actCost', parseFloat(this.value))" class="pixel-input text-xs p-1 bg-white w-24 text-pink-600 font-bold">
+                    </td>
+                    <td class="p-3 font-bold ${diff >= 0 ? 'text-matcha-700' : 'text-red-500'}">
+                        ${formatRupiah(diff)}
+                    </td>
+                    <td class="p-3">
+                        <select onchange="editSeserahanField('${item.id}', 'status', this.value)" class="pixel-input text-[11px] p-1 font-bold">
+                            <option value="Belum Dibeli" ${item.status==='Belum Dibeli'?'selected':''}>Belum Dibeli</option>
+                            <option value="Sudah Dibeli" ${item.status==='Sudah Dibeli'?'selected':''}>Sudah Dibeli</option>
+                            <option value="Boks/Hias Ready" ${item.status==='Boks/Hias Ready'?'selected':''}>Boks/Hias Ready</option>
+                        </select>
+                    </td>
+                    <td class="p-3">
+                        <input type="text" value="${item.notes || ''}" onchange="editSeserahanField('${item.id}', 'notes', this.value)" class="pixel-input text-[11px] p-1 bg-white w-full">
+                    </td>
+                    <td class="p-3 text-center">
+                        <button onclick="deleteSeserahanItem('${item.id}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function editSeserahanField(id, field, val) {
+            const item = state.seserahan.find(s => s.id === id);
+            if (item) {
+                item[field] = val;
+                saveState();
+                renderSeserahanTable();
+                showToast('Seserahan diperbarui!');
+            }
+        }
+
+        function deleteSeserahanItem(id) {
+            if (confirm('Hapus item seserahan ini?')) {
+                state.seserahan = state.seserahan.filter(s => s.id !== id);
+                saveState();
+                renderSeserahanTable();
+                renderSeserahanFilters();
+                showToast('Item seserahan dihapus.');
+            }
+        }
+
+        function openAddSeserahanModal() {
+            openAddSeserahanModalWithCategory('Pakaian & Busana');
+        }
+
+        function openAddSeserahanModalWithCategory(defaultCat) {
+            const categories = getSeserahanCategories();
+            const modalBody = document.getElementById('modal-body');
+            modalBody.innerHTML = `
+                <h3 class="font-pixel text-xs text-matcha-900 mb-4"><i class="fa-solid fa-gift text-pink-500"></i> TAMBAH SESERAHAN</h3>
+                <form onsubmit="saveNewSeserahan(event)" class="space-y-3 text-xs">
+                    <div>
+                        <label class="block font-bold mb-1">Kategori:</label>
+                        <select id="ns-cat" class="pixel-input w-full p-2 bg-white font-bold">
+                            ${categories.map(c => `<option value="${c}" ${c===defaultCat?'selected':''}>${c}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">Nama Barang:</label>
+                        <input type="text" id="ns-name" required class="pixel-input w-full p-2 bg-white" placeholder="Nama Barang">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block font-bold mb-1">Brand:</label>
+                            <input type="text" id="ns-brand" class="pixel-input w-full p-2 bg-white" placeholder="Nama Brand">
+                        </div>
+                        <div>
+                            <label class="block font-bold mb-1">Platform:</label>
+                            <select id="ns-platform" class="pixel-input w-full p-2 bg-white font-bold">
+                                <option value="Shopee">Shopee</option>
+                                <option value="TikTok">TikTok</option>
+                                <option value="Offline">Offline</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block font-bold mb-1">Perkiraan (Rp):</label>
+                            <input type="number" id="ns-est" required class="pixel-input w-full p-2 bg-white" placeholder="1000000">
+                        </div>
+                        <div>
+                            <label class="block font-bold mb-1">Harga Asli (Rp):</label>
+                            <input type="number" id="ns-act" value="0" class="pixel-input w-full p-2 bg-white">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">Catatan:</label>
+                        <input type="text" id="ns-notes" class="pixel-input w-full p-2 bg-white" placeholder="Catatan...">
+                    </div>
+                    <div class="pt-2 flex justify-end gap-2">
+                        <button type="button" onclick="closeModal()" class="pixel-btn bg-gray-200 text-gray-700 px-3 py-2">Batal</button>
+                        <button type="submit" class="pixel-btn bg-pink-400 text-white px-4 py-2">Simpan</button>
+                    </div>
+                </form>
+            `;
+            document.getElementById('modal-backdrop').classList.remove('hidden');
+        }
+
+        function saveNewSeserahan(e) {
+            e.preventDefault();
+            const newItem = {
+                id: 's-' + Date.now(),
+                category: document.getElementById('ns-cat').value,
+                name: document.getElementById('ns-name').value,
+                brandName: document.getElementById('ns-brand').value || '-',
+                platform: document.getElementById('ns-platform').value,
+                estCost: parseFloat(document.getElementById('ns-est').value || 0),
+                actCost: parseFloat(document.getElementById('ns-act').value || 0),
+                status: 'Belum Dibeli',
+                notes: document.getElementById('ns-notes').value || '-'
+            };
+            state.seserahan.push(newItem);
+            saveState();
+            closeModal();
+            renderSeserahanFilters();
+            renderSeserahanTable();
+            showToast('Seserahan ditambahkan!');
+        }
+
+        let budgetChartInstance = null;
+
+        function updateBudgetOverview() {
+            state.maxBudget = parseFloat(document.getElementById('total-budget-limit').value || 0);
+            saveState();
+        }
+
+        function renderExpenseTable() {
+            const tbody = document.getElementById('expense-table-body');
+            tbody.innerHTML = '';
+
+            Object.keys(state.vendors).forEach(catKey => {
+                const cat = state.vendors[catKey];
+                const dealOpt = cat.options.find(o => o.status === 'DEAL' || o.isDeal);
+                if (dealOpt) {
+                    const price = parseFloat(dealOpt.price || 0);
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-matcha-100/50';
+                    tr.innerHTML = `
+                        <td class="p-3 font-semibold text-gray-600">${cat.name}</td>
+                        <td class="p-3 font-bold text-matcha-900">${dealOpt.name}</td>
+                        <td class="p-3 font-bold text-pink-600">${formatRupiah(price)}</td>
+                        <td class="p-3"><span class="bg-green-100 text-green-800 px-2 py-0.5 rounded font-bold">DEAL</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            });
+
+            renderBudgetChart();
+        }
+
+        function renderBudgetChart() {
+            const ctx = document.getElementById('budgetChart');
+            if (!ctx) return;
+
+            const labels = [];
+            const dataValues = [];
+            const colors = ['#93B874', '#E8A0BF', '#7A9A60', '#F3C5D8', '#3A4D28', '#C9688F', '#B8D4A2', '#FFF0F5'];
+
+            Object.keys(state.vendors).forEach(catKey => {
+                const cat = state.vendors[catKey];
+                const dealOpt = cat.options.find(o => o.status === 'DEAL' || o.isDeal);
+                if (dealOpt) {
+                    labels.push(cat.name.split(' ')[1] || cat.name);
+                    dataValues.push(dealOpt.price);
+                }
+            });
+
+            if (budgetChartInstance) budgetChartInstance.destroy();
+            if (dataValues.length === 0) return;
+
+            budgetChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataValues,
+                        backgroundColor: colors.slice(0, labels.length),
+                        borderColor: '#1E251B',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { font: { family: 'Nunito', size: 10, weight: 'bold' } } } }
+                }
+            });
+        }
+
+        let currentChecklistPhase = 'ALL';
+
+        function renderChecklistPhaseTabs() {
+            const phases = ['ALL', 'H-12 s/d H-9 Bulan', 'H-8 s/d H-6 Bulan', 'H-5 s/d H-3 Bulan', 'H-2 s/d H-1 Bulan', 'Minggu H & Hari H', '+1 Hari Setelah Acara'];
+            const container = document.getElementById('checklist-phase-tabs');
+            container.innerHTML = '';
+            phases.forEach(phase => {
+                const btn = document.createElement('button');
+                btn.className = `pixel-btn px-3 py-1 text-xs ${currentChecklistPhase === phase ? 'bg-matcha-700 text-white' : 'bg-white text-gray-700'}`;
+                btn.innerText = phase === 'ALL' ? 'Semua Fase' : phase;
+                btn.onclick = () => { currentChecklistPhase = phase; renderChecklistPhaseTabs(); renderChecklistTasks(); };
+                container.appendChild(btn);
+            });
+        }
+
+        function renderChecklistTasks() {
+            const container = document.getElementById('checklist-items-container');
+            container.innerHTML = '';
+
+            const filtered = currentChecklistPhase === 'ALL' ? state.checklist : state.checklist.filter(c => c.phase === currentChecklistPhase);
+            document.getElementById('phase-title-display').innerText = currentChecklistPhase === 'ALL' ? 'Semua Fase Checklist' : currentChecklistPhase;
+            document.getElementById('phase-progress-display').innerText = `${filtered.filter(c=>c.completed).length}/${filtered.length} Selesai`;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="p-4 text-center text-gray-400 font-semibold text-xs">Tidak ada tugas.</div>`;
+                return;
+            }
+
+            filtered.forEach(task => {
+                const item = document.createElement('div');
+                item.className = `flex items-center justify-between p-3 border-2 border-pixeldark ${task.completed ? 'bg-matcha-100/60 line-through text-gray-500' : 'bg-white'}`;
+                item.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleChecklistTask('${task.id}')" class="w-4 h-4 accent-matcha-700 cursor-pointer">
+                        <div>
+                            <span class="text-xs font-bold block">${task.title}</span>
+                            <span class="text-[10px] text-pink-600 font-semibold">${task.phase}</span>
+                        </div>
+                    </div>
+                    <button onclick="deleteChecklistTask('${task.id}')" class="text-red-500 text-xs"><i class="fa-solid fa-trash"></i></button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function toggleChecklistTask(id) {
+            const task = state.checklist.find(c => c.id === id);
+            if (task) { task.completed = !task.completed; saveState(); renderChecklistTasks(); }
+        }
+
+        function deleteChecklistTask(id) {
+            if (confirm('Hapus tugas ini?')) {
+                state.checklist = state.checklist.filter(c => c.id !== id);
+                saveState();
+                renderChecklistTasks();
+                showToast('Tugas dihapus.');
+            }
+        }
+
+        function openAddChecklistModal() {
+            const modalBody = document.getElementById('modal-body');
+            modalBody.innerHTML = `
+                <h3 class="font-pixel text-xs text-matcha-900 mb-4"><i class="fa-solid fa-list-check text-pink-500"></i> TAMBAH TUGAS</h3>
+                <form onsubmit="saveNewChecklist(event)" class="space-y-3 text-xs">
+                    <div>
+                        <label class="block font-bold mb-1">Fase:</label>
+                        <select id="nc-phase" class="pixel-input w-full p-2 bg-white font-bold">
+                            <option value="H-12 s/d H-9 Bulan">H-12 s/d H-9 Bulan</option>
+                            <option value="H-8 s/d H-6 Bulan">H-8 s/d H-6 Bulan</option>
+                            <option value="H-5 s/d H-3 Bulan">H-5 s/d H-3 Bulan</option>
+                            <option value="H-2 s/d H-1 Bulan">H-2 s/d H-1 Bulan</option>
+                            <option value="Minggu H & Hari H">Minggu H & Hari H</option>
+                            <option value="+1 Hari Setelah Acara">+1 Hari Setelah Acara</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">Tugas:</label>
+                        <input type="text" id="nc-title" required class="pixel-input w-full p-2 bg-white" placeholder="Nama Tugas">
+                    </div>
+                    <div class="pt-2 flex justify-end gap-2">
+                        <button type="button" onclick="closeModal()" class="pixel-btn bg-gray-200 text-gray-700 px-3 py-2">Batal</button>
+                        <button type="submit" class="pixel-btn bg-matcha-500 text-white px-4 py-2">Simpan</button>
+                    </div>
+                </form>
+            `;
+            document.getElementById('modal-backdrop').classList.remove('hidden');
+        }
+
+        function saveNewChecklist(e) {
+            e.preventDefault();
+            state.checklist.push({ id: 'chk-' + Date.now(), phase: document.getElementById('nc-phase').value, title: document.getElementById('nc-title').value, completed: false });
+            saveState();
+            closeModal();
+            renderChecklistTasks();
+            showToast('Tugas ditambahkan!');
+        }
+
+        function renderGuestList() {
+            const tbody = document.getElementById('guest-table-body');
+            tbody.innerHTML = '';
+
+            let totalInvitations = state.guests.length;
+            let totalPax = 0, confirmed = 0, declined = 0;
+            state.guests.forEach(g => {
+                totalPax += parseInt(g.pax || 1);
+                if (g.rsvp === 'Hadir') confirmed++;
+                if (g.rsvp === 'Tidak Hadir') declined++;
+            });
+
+            document.getElementById('guest-stat-total').innerText = `${totalInvitations} Undangan`;
+            document.getElementById('guest-stat-pax').innerText = `${totalPax} Orang (Pax)`;
+            document.getElementById('guest-stat-confirmed').innerText = confirmed;
+            document.getElementById('guest-stat-declined').innerText = `${declined} / ${totalInvitations - confirmed - declined}`;
+
+            if (state.guests.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400">Belum ada tamu.</td></tr>`;
+                return;
+            }
+
+            state.guests.forEach(guest => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-matcha-100/50';
+                tr.innerHTML = `
+                    <td class="p-3 font-bold text-matcha-900">${guest.name}</td>
+                    <td class="p-3 font-semibold text-gray-600">${guest.category}</td>
+                    <td class="p-3 font-bold">${guest.pax} Orang</td>
+                    <td class="p-3">
+                        <select onchange="updateGuestRSVP('${guest.id}', this.value)" class="pixel-input text-[11px] p-1">
+                            <option value="Belum Konfirmasi" ${guest.rsvp==='Belum Konfirmasi'?'selected':''}>Belum Konfirmasi</option>
+                            <option value="Hadir" ${guest.rsvp==='Hadir'?'selected':''}>Hadir</option>
+                            <option value="Tidak Hadir" ${guest.rsvp==='Tidak Hadir'?'selected':''}>Tidak Hadir</option>
+                        </select>
+                    </td>
+                    <td class="p-3 font-bold">${guest.table || '-'}</td>
+                    <td class="p-3">
+                        <input type="text" value="${guest.gift || '-'}" placeholder="Ketik hadiah..." onchange="updateGuestGift('${guest.id}', this.value)" class="pixel-input text-xs p-1 bg-white font-bold text-pink-600 w-full">
+                    </td>
+                    <td class="p-3 text-center">
+                        <button onclick="deleteGuestItem('${guest.id}')" class="text-red-500"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateGuestRSVP(id, rsvp) {
+            const g = state.guests.find(x => x.id === id);
+            if (g) { g.rsvp = rsvp; saveState(); renderGuestList(); showToast('RSVP diperbarui!'); }
+        }
+
+        function updateGuestGift(id, gift) {
+            const g = state.guests.find(x => x.id === id);
+            if (g) { g.gift = gift; saveState(); showToast('Hadiah diperbarui!'); }
+        }
+
+        function deleteGuestItem(id) {
+            if (confirm('Hapus tamu?')) {
+                state.guests = state.guests.filter(g => g.id !== id);
+                saveState();
+                renderGuestList();
+                showToast('Tamu dihapus.');
+            }
+        }
+
+        function openAddGuestModal() {
+            const modalBody = document.getElementById('modal-body');
+            modalBody.innerHTML = `
+                <h3 class="font-pixel text-xs text-matcha-900 mb-4"><i class="fa-solid fa-user-plus text-pink-500"></i> TAMBAH TAMU</h3>
+                <form onsubmit="saveNewGuest(event)" class="space-y-3 text-xs">
+                    <div>
+                        <label class="block font-bold mb-1">Nama Undangan:</label>
+                        <input type="text" id="ng-name" required class="pixel-input w-full p-2 bg-white" placeholder="Nama Tamu">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block font-bold mb-1">Kategori:</label>
+                            <select id="ng-cat" class="pixel-input w-full p-2 bg-white font-bold">
+                                <option value="Keluarga Bride">Keluarga Bride</option>
+                                <option value="Keluarga Groom">Keluarga Groom</option>
+                                <option value="Sahabat Bride/Groom">Sahabat Bride/Groom</option>
+                                <option value="Teman Kantor">Teman Kantor</option>
+                                <option value="VIP & Kolega">VIP & Kolega</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-bold mb-1">Jumlah Orang (Pax):</label>
+                            <input type="number" id="ng-pax" min="1" value="2" class="pixel-input w-full p-2 bg-white">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">Hadiah:</label>
+                        <input type="text" id="ng-gift" value="-" class="pixel-input w-full p-2 bg-white" placeholder="Hadiah...">
+                    </div>
+                    <div class="pt-2 flex justify-end gap-2">
+                        <button type="button" onclick="closeModal()" class="pixel-btn bg-gray-200 text-gray-700 px-3 py-2">Batal</button>
+                        <button type="submit" class="pixel-btn bg-pink-400 text-white px-4 py-2">Simpan</button>
+                    </div>
+                </form>
+            `;
+            document.getElementById('modal-backdrop').classList.remove('hidden');
+        }
+
+        function saveNewGuest(e) {
+            e.preventDefault();
+            state.guests.push({ 
+                id: 'g-' + Date.now(), 
+                name: document.getElementById('ng-name').value, 
+                category: document.getElementById('ng-cat').value, 
+                pax: parseInt(document.getElementById('ng-pax').value || 1), 
+                rsvp: 'Belum Konfirmasi', 
+                table: 'VIP', 
+                gift: document.getElementById('ng-gift').value || '-' 
+            });
+            saveState();
+            closeModal();
+            renderGuestList();
+            showToast('Tamu ditambahkan!');
+        }
+
+        function closeModal() { document.getElementById('modal-backdrop').classList.add('hidden'); }
+
+        function exportDataJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+            const dl = document.createElement('a');
+            dl.setAttribute("href", dataStr);
+            dl.setAttribute("download", `Wedding_Planner_${state.groomName}_${state.brideName}.json`);
+            document.body.appendChild(dl);
+            dl.click();
+            dl.remove();
+            showToast('Data diekspor ke JSON!');
+        }
+
+        function importDataJSON(event) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed && parsed.vendors) {
+                        state = parsed;
+                        saveState();
+                        initAllViews();
+                        showToast('Data diimpor!');
+                    } else alert('Format salah.');
+                } catch(err) { alert('Error: ' + err.message); }
+            };
+            reader.readAsText(event.target.files[0]);
+        }
+
+        function confirmResetAllData() {
+            if (confirm('Reset SEMUA data ke awal? Perubahan ini berlaku untuk semua orang yang membuka link ini.')) {
+                state = cloneDefaults();
+                saveState();
+                initAllViews();
+                showToast('Direset ke default.');
+            }
+        }
+
+        function initAllViews() {
+            document.getElementById('groom-name').value = state.groomName;
+            document.getElementById('bride-name').value = state.brideName;
+            document.getElementById('wedding-date').value = state.weddingDate;
+            document.getElementById('total-budget-limit').value = state.maxBudget;
+
+            document.getElementById('groom-name').onchange = (e) => { state.groomName = e.target.value; saveState(); };
+            document.getElementById('bride-name').onchange = (e) => { state.brideName = e.target.value; saveState(); };
+            document.getElementById('wedding-date').onchange = (e) => { state.weddingDate = e.target.value; saveState(); initCountdown(); };
+
+            initVendorDropdown();
+            renderSeserahanFilters();
+            renderSeserahanTable();
+            renderExpenseTable();
+            renderChecklistPhaseTabs();
+            renderChecklistTasks();
+            renderGuestList();
+            updateGlobalOverview();
+        }
+
+        window.onload = async function() {
+            init3DCanvas();
+            await loadInitialData();
+            initCountdown();
+            initAllViews();
+            setInterval(() => pullFromServer(false), POLL_MS);
+            document.addEventListener('visibilitychange', () => { if (!document.hidden) pullFromServer(false); });
+            window.addEventListener('focus', () => pullFromServer(false));
+        };
+    </script>
+</body>
+</html>
